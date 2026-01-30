@@ -18,6 +18,7 @@ class CMSModel:
         self.physics = physics_config
         self.compute_config = compute_config
         self.integrator = RK5Integrator()
+        self.time = 0.0
         
         # Modules
         self.dynamics = NavierStokesSolver(self.grid, self.physics, use_gpu=self.compute_config.use_gpu)
@@ -125,6 +126,7 @@ class CMSModel:
 
         # Use internal step wrapper for packing/unpacking
         self._step_internal(dt, full_rhs)
+        self.time += dt
         
     def _step_internal(self, dt, rhs_func):
         # State packing (18 vars)

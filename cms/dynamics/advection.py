@@ -22,7 +22,7 @@ try:
         weno5_reconstruct_z_kernel,
         compute_advection_flux_kernel
     )
-    HAS_CUDA = True
+    HAS_CUDA = cuda.is_available()
 except ImportError:
     HAS_CUDA = False
 
