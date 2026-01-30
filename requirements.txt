@@ -1,4 +1,18 @@
-numpy
-scipy
-matplotlib
-netCDF4
+# Core dependencies
+numpy>=1.24.0
+scipy>=1.10.0
+matplotlib>=3.7.0
+netCDF4>=1.6.0
+
+# CPU acceleration (recommended)
+numba>=0.58.0
+
+# GPU acceleration (optional - requires CUDA)
+# Uncomment if you have NVIDIA GPU with CUDA installed:
+# cupy-cuda11x>=12.0.0  # For CUDA 11.x
+# cupy-cuda12x>=12.0.0  # For CUDA 12.x
+
+# Development tools (optional)
+# flake8>=6.0.0
+# mypy>=1.0.0
+# pytest>=7.0.0
