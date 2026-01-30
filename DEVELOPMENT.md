@@ -80,11 +80,11 @@ cloud-modeling-system/
     1.  [x] Implement Radar forward operator in `cms/utils/diagnostics.py`.
     2.  [x] Create multi-sensor validation script in `cms/utils/validation.py`.
 
-### Phase 7: Optimization & Deployment (Upcoming)
+### Phase 7: Optimization & Deployment (In Progress)
 - **Goal**: Performance and production readiness.
 - **Tasks**:
-    1.  [ ] Profiling and Numba/Cython optimization for core stencils.
-    2.  [ ] Containerization (Dockerfile).
+    1.  [x] Profiling and Numba optimization for core stencils (Advection).
+    2.  [x] Containerization (Dockerfile).
     3.  [ ] Comprehensive documentation and tutorials.
 
 ## Setup & Workflow

@@ -2,6 +2,18 @@ import numpy as np
 from typing import Tuple
 from cms.core.grid import Grid
 
+# Try to import Numba kernels
+try:
+    from cms.dynamics.advection_numba import (
+        weno5_reconstruct_x, 
+        weno5_reconstruct_y, 
+        weno5_reconstruct_z, 
+        compute_advection_flux
+    )
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
+
 class WENO5:
     """
     5th-order Weighted Essentially Non-Oscillatory (WENO) advection scheme.
@@ -10,6 +22,7 @@ class WENO5:
     def __init__(self, grid: Grid):
         self.grid = grid
         self.eps = 1e-6  # Avoid division by zero
+        self.use_numba = HAS_NUMBA
 
     def _reconstruct_weno5(self, f: np.ndarray, axis: int) -> np.ndarray:
         """
@@ -53,12 +66,28 @@ class WENO5:
         """
         Computes the advection tendency -div(q * U).
         """
-        # For simplicity in this initial implementation, we use WENO5 on the 
-        # quantity q, assuming velocity is constant at interfaces or handled via upwinding.
-        # A more robust implementation would use a flux-splitting method (e.g., Lax-Friedrichs).
-        
         dq_dt = np.zeros_like(q)
+        nx, ny, nz = q.shape
         
+        if self.use_numba:
+            # Buffer for reconstruction
+            q_recons = np.empty_like(q)
+            
+            # X-axis
+            weno5_reconstruct_x(q, q_recons, nx, ny, nz)
+            compute_advection_flux(q_recons, u, dq_dt, 0, self.grid.dx, nx, ny, nz)
+            
+            # Y-axis
+            weno5_reconstruct_y(q, q_recons, nx, ny, nz)
+            compute_advection_flux(q_recons, v, dq_dt, 1, self.grid.dy, nx, ny, nz)
+            
+            # Z-axis
+            weno5_reconstruct_z(q, q_recons, nx, ny, nz)
+            compute_advection_flux(q_recons, w, dq_dt, 2, self.grid.dz, nx, ny, nz)
+            
+            return dq_dt
+
+        # Fallback to pure NumPy implementation (slow)
         for axis, vel in enumerate([u, v, w]):
             # 1. Reconstruct interface values
             # q_left is used for positive velocity, q_right for negative (simplistic upwinding)
