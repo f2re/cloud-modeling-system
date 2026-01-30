@@ -68,11 +68,17 @@ cloud-modeling-system/
     1.  [x] Implement ice phase in `cms/microphysics/ice.py`.
     2.  [x] Add seeding dispersion in `cms/diffusion/`.
 
-### Phase 5: Advanced Features (Current)
+### Phase 5: Advanced Features (Completed)
 - **Goal**: Aerosol-cloud interactions and LES turbulence model refinement.
 - **Tasks**:
-    1.  Aerosol-cloud interactions (CCN activation).
-    2.  Refine LES turbulence model (if needed).
+    1.  [x] Aerosol-cloud interactions (CCN activation).
+    2.  [x] Refine LES turbulence model (Smagorinsky implemented in Phase 4).
+
+### Phase 6: Validation (Current)
+- **Goal**: Radar forward operator and multi-sensor comparison.
+- **Tasks**:
+    1.  Implement Radar forward operator in `cms/utils/diagnostics.py`.
+    2.  Create multi-sensor validation script.
 
 ## Setup & Workflow
 

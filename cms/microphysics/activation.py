@@ -34,7 +34,7 @@ class Activation:
         n_ccn_safe = np.maximum(n_ccn, 1e6) # Min 1/cm^3
         
         # Coefficients (Placeholder values consistent with Guide's proportionalities)
-        c1 = 1e-3 # Scaling factor for S_max equation
+        c1 = 100.0 # Scaling factor for S_max equation (tuned for realistic S%)
         
         s_max = c1 * (w_up**0.75) * (n_ccn_safe**-0.5)
         

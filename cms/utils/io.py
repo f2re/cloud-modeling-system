@@ -16,10 +16,10 @@ class IOManager:
     def save_state(self, filename: str, grid: Grid, time_s: float, 
                    u: np.ndarray, v: np.ndarray, w: np.ndarray, 
                    rho: np.ndarray, theta: np.ndarray, 
-                   qc: np.ndarray, qr: np.ndarray,
+                   qc: np.ndarray, qr: np.ndarray, nc: np.ndarray,
                    qi: np.ndarray, qs: np.ndarray, qg: np.ndarray,
                    ni: np.ndarray, ns: np.ndarray, ng: np.ndarray,
-                   c_agi: np.ndarray):
+                   c_agi: np.ndarray, n_ccn: np.ndarray, n_inp_nat: np.ndarray):
         """
         Writes the current model state to a NetCDF file.
         """
@@ -59,6 +59,7 @@ class IOManager:
             # Warm
             save_field('qc', qc, 'kg/kg')
             save_field('qr', qr, 'kg/kg')
+            save_field('nc', nc, 'm-3') # Added Nc
             
             # Ice
             save_field('qi', qi, 'kg/kg')
@@ -68,8 +69,10 @@ class IOManager:
             save_field('ns', ns, 'm-3')
             save_field('ng', ng, 'm-3')
             
-            # Seeding
+            # Aerosols
             save_field('c_agi', c_agi, 'kg/kg')
+            save_field('n_ccn', n_ccn, 'm-3')
+            save_field('n_inp_nat', n_inp_nat, 'm-3')
             
             # Global attributes
             ds.dx = grid.dx
