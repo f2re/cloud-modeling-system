@@ -74,11 +74,18 @@ cloud-modeling-system/
     1.  [x] Aerosol-cloud interactions (CCN activation).
     2.  [x] Refine LES turbulence model (Smagorinsky implemented in Phase 4).
 
-### Phase 6: Validation (Current)
+### Phase 6: Validation (Completed)
 - **Goal**: Radar forward operator and multi-sensor comparison.
 - **Tasks**:
-    1.  Implement Radar forward operator in `cms/utils/diagnostics.py`.
-    2.  Create multi-sensor validation script.
+    1.  [x] Implement Radar forward operator in `cms/utils/diagnostics.py`.
+    2.  [x] Create multi-sensor validation script in `cms/utils/validation.py`.
+
+### Phase 7: Optimization & Deployment (Upcoming)
+- **Goal**: Performance and production readiness.
+- **Tasks**:
+    1.  [ ] Profiling and Numba/Cython optimization for core stencils.
+    2.  [ ] Containerization (Dockerfile).
+    3.  [ ] Comprehensive documentation and tutorials.
 
 ## Setup & Workflow
 
