@@ -8,10 +8,10 @@ class NavierStokesSolver:
     Compressible Navier-Stokes solver.
     Ref: IMPLEMENTATION_GUIDE.md Section 4.1
     """
-    def __init__(self, grid: Grid, config: PhysicsConfig):
+    def __init__(self, grid: Grid, config: PhysicsConfig, use_gpu: bool = False):
         self.grid = grid
         self.config = config
-        self.weno = WENO5(grid)
+        self.weno = WENO5(grid, use_gpu=use_gpu)
 
     def compute_tendencies(self, 
                            u: np.ndarray, v: np.ndarray, w: np.ndarray, 

@@ -1,4 +1,4 @@
-import netCDF4 as nc
+import netCDF4 as netcdf
 import numpy as np
 import os
 from datetime import datetime
@@ -26,7 +26,7 @@ class IOManager:
         filepath = os.path.join(self.output_dir, filename)
         
         # Open file in write mode
-        with nc.Dataset(filepath, 'w', format='NETCDF4') as ds:
+        with netcdf.Dataset(filepath, 'w', format='NETCDF4') as ds:
             ds.description = "Cloud Modeling System Output"
             ds.history = f"Created {datetime.now().isoformat()}"
             ds.time = time_s

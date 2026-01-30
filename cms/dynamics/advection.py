@@ -14,15 +14,31 @@ try:
 except ImportError:
     HAS_NUMBA = False
 
+try:
+    from numba import cuda
+    from cms.dynamics.advection_cuda import (
+        weno5_reconstruct_x_kernel,
+        weno5_reconstruct_y_kernel,
+        weno5_reconstruct_z_kernel,
+        compute_advection_flux_kernel
+    )
+    HAS_CUDA = True
+except ImportError:
+    HAS_CUDA = False
+
 class WENO5:
     """
     5th-order Weighted Essentially Non-Oscillatory (WENO) advection scheme.
     Ref: IMPLEMENTATION_GUIDE.md Section 6.1
     """
-    def __init__(self, grid: Grid):
+    def __init__(self, grid: Grid, use_gpu: bool = False):
         self.grid = grid
         self.eps = 1e-6  # Avoid division by zero
-        self.use_numba = HAS_NUMBA
+        self.use_gpu = use_gpu and HAS_CUDA
+        self.use_numba = HAS_NUMBA and not self.use_gpu
+        
+        if use_gpu and not HAS_CUDA:
+            print("WARNING: GPU requested but CUDA not available/imported. Falling back to CPU.")
 
     def _reconstruct_weno5(self, f: np.ndarray, axis: int) -> np.ndarray:
         """
@@ -68,6 +84,41 @@ class WENO5:
         """
         dq_dt = np.zeros_like(q)
         nx, ny, nz = q.shape
+        
+        if self.use_gpu:
+            # Transfer data to device
+            d_q = cuda.to_device(q)
+            d_u = cuda.to_device(u)
+            d_v = cuda.to_device(v)
+            d_w = cuda.to_device(w)
+            d_dq_dt = cuda.to_device(dq_dt) # Initialize on device with zeros from host
+            
+            # Temporary buffer for reconstruction
+            # We can allocate empty on device
+            d_q_recons = cuda.device_array_like(d_q)
+            
+            # Configure grid
+            threadsperblock = (8, 8, 8)
+            blockspergrid_x = (nx + 7) // 8
+            blockspergrid_y = (ny + 7) // 8
+            blockspergrid_z = (nz + 7) // 8
+            blockspergrid = (blockspergrid_x, blockspergrid_y, blockspergrid_z)
+            
+            # X-axis
+            weno5_reconstruct_x_kernel[blockspergrid, threadsperblock](d_q, d_q_recons, nx, ny, nz)
+            compute_advection_flux_kernel[blockspergrid, threadsperblock](d_q_recons, d_u, d_dq_dt, 0, self.grid.dx, nx, ny, nz)
+            
+            # Y-axis
+            weno5_reconstruct_y_kernel[blockspergrid, threadsperblock](d_q, d_q_recons, nx, ny, nz)
+            compute_advection_flux_kernel[blockspergrid, threadsperblock](d_q_recons, d_v, d_dq_dt, 1, self.grid.dy, nx, ny, nz)
+            
+            # Z-axis
+            weno5_reconstruct_z_kernel[blockspergrid, threadsperblock](d_q, d_q_recons, nx, ny, nz)
+            compute_advection_flux_kernel[blockspergrid, threadsperblock](d_q_recons, d_w, d_dq_dt, 2, self.grid.dz, nx, ny, nz)
+            
+            # Copy result back
+            d_dq_dt.copy_to_host(dq_dt)
+            return dq_dt
         
         if self.use_numba:
             # Buffer for reconstruction

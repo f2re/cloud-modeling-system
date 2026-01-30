@@ -1,7 +1,7 @@
 import numpy as np
 import time
 from cms.model import CMSModel
-from cms.config import GridConfig, PhysicsConfig
+from cms.config import GridConfig, PhysicsConfig, ComputeConfig
 from cms.utils.diagnostics import compute_radar_reflectivity
 from cms.utils.io import IOManager
 
@@ -12,18 +12,21 @@ def run_simulation():
     # Smaller grid for a quick demonstration
     g_config = GridConfig(nx=40, ny=40, nz=40, dx=100, dy=100, dz=100)
     p_config = PhysicsConfig()
+    c_config = ComputeConfig(use_gpu=True)
     
     # 2. Initialize Model
-    model = CMSModel(g_config, p_config)
+    model = CMSModel(g_config, p_config, c_config)
     io_manager = IOManager("output")
     
     # 3. Initial Condition: Warm Bubble
     # Add a +2K perturbation in the center to trigger convection
     mid_x, mid_y = g_config.nx // 2, g_config.ny // 2
     model.theta[mid_x-2:mid_x+3, mid_y-2:mid_y+3, 5:10] += 2.0
+    # Initialize background droplets to avoid singularity
+    model.nc[:] = 1e8
     
     print(f"Grid size: {g_config.nx}x{g_config.ny}x{g_config.nz}")
-    print(f"Numba acceleration: {'ENABLED' if model.dynamics.weno.use_numba else 'DISABLED'}")
+    print(f"Compute Mode: {'GPU (CUDA)' if model.dynamics.weno.use_gpu else ('CPU (Numba)' if model.dynamics.weno.use_numba else 'CPU (Pure Python)')}")
     
     # 4. Integration Loop
     # Reduced dt to ensure stability (CFL condition)
@@ -68,6 +71,15 @@ def run_simulation():
     print("\n=== Simulation Complete ===")
     print(f"Total Wall Time: {end_wall - start_wall:.2f}s")
     print(f"Final Max W: {np.max(model.w):.3f} m/s")
+
+    # 5. Visualization
+    from cms.utils.visualization import Visualizer
+    print("\nGenerating animations...")
+    viz = Visualizer("output")
+    if viz.files:
+        viz.create_animation("w", y_index=mid_y, output_filename="output/w_animation.gif")
+        viz.create_animation("qc", y_index=mid_y, output_filename="output/qc_animation.gif")
+        viz.create_animation("theta", y_index=mid_y, output_filename="output/theta_animation.gif")
 
 if __name__ == "__main__":
     run_simulation()

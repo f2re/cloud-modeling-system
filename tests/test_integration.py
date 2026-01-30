@@ -38,6 +38,7 @@ class TestIntegration(unittest.TestCase):
         
         # Add some cloud water to test microphysics
         self.model.qc[ic_x, ic_y, ic_z] = 1e-3 # 1 g/kg
+        self.model.nc[ic_x, ic_y, ic_z] = 1e8  # 100 cm-3 (Standard value)
 
         # 2. Run simulation
         dt = 1.0
@@ -51,7 +52,10 @@ class TestIntegration(unittest.TestCase):
             filename, self.model.grid, steps * dt,
             self.model.u, self.model.v, self.model.w,
             self.model.rho, self.model.theta,
-            self.model.qc, self.model.qr
+            self.model.qc, self.model.qr, self.model.nc,
+            self.model.qi, self.model.qs, self.model.qg,
+            self.model.ni, self.model.ns, self.model.ng,
+            self.model.c_agi, self.model.n_ccn, self.model.n_inp_nat
         )
 
         # 4. Verify file

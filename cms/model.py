@@ -7,19 +7,20 @@ from cms.microphysics.warm import WarmMicrophysics
 from cms.microphysics.ice import IceMicrophysics
 from cms.microphysics.activation import Activation
 from cms.diffusion.turbulence import Turbulence
-from cms.config import PhysicsConfig, GridConfig
+from cms.config import PhysicsConfig, GridConfig, ComputeConfig
 
 class CMSModel:
     """
     Main model class coupling Dynamics, Microphysics, Turbulence, and Aerosols.
     """
-    def __init__(self, grid_config: GridConfig, physics_config: PhysicsConfig):
+    def __init__(self, grid_config: GridConfig, physics_config: PhysicsConfig, compute_config: ComputeConfig = ComputeConfig()):
         self.grid = Grid(grid_config)
         self.physics = physics_config
+        self.compute_config = compute_config
         self.integrator = RK5Integrator()
         
         # Modules
-        self.dynamics = NavierStokesSolver(self.grid, self.physics)
+        self.dynamics = NavierStokesSolver(self.grid, self.physics, use_gpu=self.compute_config.use_gpu)
         self.warm_micro = WarmMicrophysics(self.physics)
         self.ice_micro = IceMicrophysics(self.physics)
         self.activation = Activation(self.physics)

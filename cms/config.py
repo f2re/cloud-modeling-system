@@ -48,3 +48,8 @@ class GridConfig:
     dx: float = DEFAULT_DX
     dy: float = DEFAULT_DY
     dz: float = DEFAULT_DZ
+
+@dataclass
+class ComputeConfig:
+    use_gpu: bool = False
+    use_numba: bool = True

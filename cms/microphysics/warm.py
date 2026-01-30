@@ -23,7 +23,11 @@ class WarmMicrophysics:
         # Note: nc is number concentration (m^-3)
         auto_rate = np.zeros_like(qc)
         mask = qc > 1e-6
-        auto_rate[mask] = 1350.0 * qc[mask]**2.47 * nc[mask]**-1.79 / rho[mask]**1.47
+        
+        # Safety: Clamp nc to avoid division by zero
+        nc_safe = np.maximum(nc[mask], 1e-3)
+        
+        auto_rate[mask] = 1350.0 * qc[mask]**2.47 * nc_safe**-1.79 / rho[mask]**1.47
         
         dqr_auto = auto_rate
         dqc_auto = -auto_rate
