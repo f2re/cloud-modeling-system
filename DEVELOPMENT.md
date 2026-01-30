@@ -41,31 +41,38 @@ cloud-modeling-system/
 
 ## Development Phases
 
-### Phase 1: Foundation (Current)
+### Phase 1: Foundation (Completed)
 - **Goal**: Establish the grid, basic time stepping, and simple advection.
 - **Tasks**:
-    1.  Implement `cms/config.py` with physical constants.
-    2.  Create the 3D grid class in `cms/core/grid.py`.
-    3.  Implement a basic Runge-Kutta integrator in `cms/core/time_integration.py`.
-    4.  Implement a simple advection test in `tests/test_advection.py`.
+    1.  [x] Implement `cms/config.py` with physical constants.
+    2.  [x] Create the 3D grid class in `cms/core/grid.py`.
+    3.  [x] Implement a basic Runge-Kutta integrator in `cms/core/time_integration.py`.
+    4.  [x] Implement a simple advection test in `tests/test_advection.py`.
 
-### Phase 2: Dynamics
-- **Goal**: Implement the compressible Navier-Stokes solver.
+### Phase 2: Dynamics (Completed)
+- **Goal**: Implement the compressible Navier-Stokes solver and WENO-5 advection.
 - **Tasks**:
-    1.  Add momentum and continuity equations in `cms/dynamics/`.
-    2.  Implement boundary conditions (sponge layer, no-slip).
+    1.  [x] Implement 5th-order WENO advection scheme in `cms/dynamics/advection.py`.
+    2.  [x] Add momentum and continuity equations in `cms/dynamics/navier_stokes.py`.
+    3.  [x] Implement boundary conditions (sponge layer, no-slip).
 
-### Phase 3: Basic Microphysics
+### Phase 3: Basic Microphysics (Completed)
 - **Goal**: Add warm rain physics (Kessler scheme).
 - **Tasks**:
-    1.  Implement `cms/microphysics/warm.py`.
-    2.  Coupling microphysics with dynamics.
+    1.  [x] Implement `cms/microphysics/warm.py`.
+    2.  [x] Coupling microphysics with dynamics.
 
-### Phase 4: Advanced Physics & Seeding
+### Phase 4: Advanced Physics & Seeding (Completed)
 - **Goal**: Full double-moment microphysics and AgI seeding.
 - **Tasks**:
-    1.  Implement ice phase in `cms/microphysics/ice.py`.
-    2.  Add seeding dispersion in `cms/diffusion/`.
+    1.  [x] Implement ice phase in `cms/microphysics/ice.py`.
+    2.  [x] Add seeding dispersion in `cms/diffusion/`.
+
+### Phase 5: Advanced Features (Current)
+- **Goal**: Aerosol-cloud interactions and LES turbulence model refinement.
+- **Tasks**:
+    1.  Aerosol-cloud interactions (CCN activation).
+    2.  Refine LES turbulence model (if needed).
 
 ## Setup & Workflow
 
