@@ -76,17 +76,80 @@ python -m unittest discover tests -v
 * **cms-physicist**: Валидация физики и контроль качества
 * **cms-fixer**: Автоматическая отладка и исправление ошибок
 
-### Использование с Gemini CLI
+### Установка Gemini CLI
 
 ```bash
-# Активация оркестратора
-gemini --skill .gemini/skills/cms-orchestrator
+# Установите Gemini CLI (требуется Node.js)
+npm install -g @google/generative-ai-cli
 
-# Запрос следующей задачи
-"Что делать дальше?"
+# Или используйте официальный установщик
+curl -fsSL https://geminicli.com/install.sh | bash
 
-# Запрос конкретной реализации
-"Реализуй уравнение 3.5.1 (автоконверсия) согласно IMPLEMENTATION_GUIDE"
+# Настройте API ключ
+gemini auth login
+```
+
+### Использование с Gemini CLI
+
+**Шаг 1: Запустите интерактивную сессию**
+
+```bash
+# Просто запустите gemini в корне проекта
+cd cloud-modeling-system
+gemini
+```
+
+**Шаг 2: Проверьте доступные skills**
+
+```bash
+# Внутри интерактивной сессии Gemini CLI
+/skills list
+
+# Вы увидите:
+# ✓ cms-orchestrator (workspace)
+# ✓ cms-coder (workspace)
+# ✓ cms-physicist (workspace)
+# ✓ cms-fixer (workspace)
+```
+
+**Шаг 3: Работайте естественно - skills активируются автоматически**
+
+```bash
+# Gemini автоматически определит нужный skill на основе вашего запроса
+> "Что делать дальше в разработке?"
+# → Активирует cms-orchestrator
+
+> "Реализуй уравнение 3.5.1 для автоконверсии"
+# → Активирует cms-orchestrator → cms-coder → cms-physicist
+
+> "Тесты в test_ice.py падают"
+# → Активирует cms-fixer
+```
+
+**Опционально: Принудительная активация skill**
+
+```bash
+# Упомяните имя skill явно в запросе
+> "@cms-physicist проверь файл cms/microphysics/warm.py"
+
+# Или укажите в начале беседы
+> "Используя cms-orchestrator, покажи текущий статус фаз"
+```
+
+### Управление Skills
+
+```bash
+# Отключить skill временно
+/skills disable cms-coder
+
+# Включить обратно
+/skills enable cms-coder
+
+# Обновить список skills (после изменений в .gemini/skills/)
+/skills reload
+
+# Отключить для workspace (будет сохранено в .gemini/config.json)
+/skills disable cms-fixer --scope workspace
 ```
 
 ### Рабочий процесс
@@ -140,7 +203,8 @@ cms-fixer анализирует:
 
 ```mermaid
 graph TD
-    User[Пользователь] --> Orchestrator[cms-orchestrator]
+    User[Пользователь] --> Gemini[Gemini CLI]
+    Gemini --> |Автоматически активирует| Orchestrator[cms-orchestrator]
     Orchestrator --> |Делегирует задачу| Coder[cms-coder]
     Coder --> |Генерирует код| Code[Python модуль + тест]
     Code --> Physicist[cms-physicist]
@@ -186,14 +250,17 @@ graph TD
 ### Рабочий процесс разработки
 
 1. Выберите задачу из DEVELOPMENT.md
-2. Используйте Gemini CLI для генерации кода:
+2. Запустите Gemini CLI в корне проекта:
    ```bash
-   gemini --skill .gemini/skills/cms-orchestrator
-   > "Реализуй следующую незавершённую задачу"
+   gemini
    ```
-3. Проверьте сгенерированный код
-4. Запустите тесты: `python -m unittest discover tests -v`
-5. Создайте PR с описанием реализованных уравнений
+3. Опишите задачу естественным языком:
+   ```
+   > "Реализуй следующую незавершённую задачу из DEVELOPMENT.md"
+   ```
+4. Проверьте сгенерированный код
+5. Запустите тесты: `python -m unittest discover tests -v`
+6. Создайте PR с описанием реализованных уравнений
 
 ### Стандарты кодирования
 
@@ -225,12 +292,67 @@ graph TD
 * **Турбулентность**: LES с моделью Smagorinsky
 * **Условие устойчивости**: CFL ≤ 0.5
 
+## Продвинутые возможности Gemini CLI
+
+### Кастомные команды
+
+Создайте файл `.gemini/commands/physics-report.md`:
+
+```markdown
+---
+name: physics-report
+description: Generate comprehensive physics validation report
+---
+
+Analyze all files in cms/microphysics/ and cms/dynamics/, then:
+1. Cross-reference each function against IMPLEMENTATION_GUIDE.md
+2. Check conservation laws (mass, energy, momentum)
+3. Verify CFL conditions and stability limits
+4. Generate markdown report with validation status
+5. Highlight any discrepancies or missing references
+```
+
+Используйте: `/physics-report`
+
+### Hooks для автоматизации
+
+Создайте `.gemini/hooks/pre-commit.sh` для автоматической валидации:
+
+```bash
+#!/bin/bash
+# Автоматически запускается перед коммитом
+
+# Запустить тесты
+python -m unittest discover tests -v || exit 1
+
+# Проверить форматирование
+flake8 cms/ tests/ || exit 1
+
+# Валидировать физику через Gemini
+gemini -p "Validate recent changes against IMPLEMENTATION_GUIDE physics" --non-interactive
+```
+
+### Интеграция с workflow
+
+```bash
+# Быстрая проверка перед push
+gemini -p "Review uncommitted changes for physics correctness"
+
+# Генерация документации
+gemini -p "Generate API documentation for cms/microphysics module"
+
+# Анализ производительности
+gemini -p "Profile the advection scheme and suggest vectorization improvements"
+```
+
 ## Ссылки
 
 * **Физическое руководство**: [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)
 * **План разработки**: [DEVELOPMENT.md](DEVELOPMENT.md)
 * **AI контекст**: [GEMINI.md](GEMINI.md)
 * **Тесты**: [tests/](tests/)
+* **Gemini CLI документация**: [geminicli.com/docs](https://geminicli.com/docs)
+* **Agent Skills стандарт**: [geminicli.com/docs/cli/skills](https://geminicli.com/docs/cli/skills)
 
 ## Лицензия
 
