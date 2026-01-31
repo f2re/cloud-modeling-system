@@ -50,12 +50,10 @@ def weno5_reconstruct_x(q, out, nx, ny, nz):
                 a1 = 0.6 / ((eps + b1)*(eps + b1))
                 a2 = 0.3 / ((eps + b2)*(eps + b2))
                 
-                w_sum = a0 + a1 + a2
+                w_sum = a0 + a1 + a2 + eps
                 w0 = a0 / w_sum
                 w1 = a1 / w_sum
                 w2 = a2 / w_sum
-                
-                # Polynomials
                 # q0 = (1/3)*v_m2 - (7/6)*v_m1 + (11/6)*v_0
                 q0 = 0.3333333333333333*v_m2 - 1.1666666666666667*v_m1 + 1.8333333333333333*v_0
                 
@@ -105,7 +103,7 @@ def weno5_reconstruct_y(q, out, nx, ny, nz):
                 a1 = 0.6 / ((eps + b1)**2)
                 a2 = 0.3 / ((eps + b2)**2)
                 
-                w_sum = a0 + a1 + a2
+                w_sum = a0 + a1 + a2 + eps
                 w0 = a0 / w_sum
                 w1 = a1 / w_sum
                 w2 = a2 / w_sum
@@ -154,7 +152,7 @@ def weno5_reconstruct_z(q, out, nx, ny, nz):
                 a1 = 0.6 / ((eps + b1)**2)
                 a2 = 0.3 / ((eps + b2)**2)
                 
-                w_sum = a0 + a1 + a2
+                w_sum = a0 + a1 + a2 + eps
                 w0 = a0 / w_sum
                 w1 = a1 / w_sum
                 w2 = a2 / w_sum

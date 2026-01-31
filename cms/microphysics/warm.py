@@ -44,7 +44,8 @@ class WarmMicrophysics:
         # Placeholder for Dr (mean diameter) and vr (terminal velocity)
         # In a real double-moment scheme, these depend on (qr, nr)
         # Ref Section 3.4 for full parameterization
-        dr = (6.0 * rho * qr_safe / (np.pi * self.config.rho_w * nr_safe))**(1/3)
+        base = (6.0 * rho * qr_safe / (np.pi * self.config.rho_w * nr_safe))
+        dr = np.power(np.maximum(0.0, base), 1.0/3.0)
         vr = 36.34 * dr**0.5  # Simplified power law
         
         accr_rate = (np.pi / 4.0) * e_cr * nr * qc * dr**2 * vr

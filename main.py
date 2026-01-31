@@ -10,7 +10,7 @@ def run_simulation():
     
     # 1. Configuration
     # Smaller grid for a quick demonstration
-    g_config = GridConfig(nx=40, ny=40, nz=40, dx=100, dy=100, dz=100)
+    g_config = GridConfig(nx=101, ny=101, nz=101, dx=500, dy=500, dz=100)
     p_config = PhysicsConfig()
     c_config = ComputeConfig(use_gpu=True)
     

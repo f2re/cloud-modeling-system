@@ -17,6 +17,11 @@ K_A = 2.4e-2             # Thermal conductivity air [W/m/K]
 G = 9.81                 # Gravity [m/s^2]
 CP = 1004.0              # Specific heat capacity [J/kg/K]
 RD = 287.05              # Gas constant for dry air [J/kg/K]
+ETA_AIR = 1.81e-5        # Dynamic viscosity of air [Pa.s] at 15C
+
+# Seeding-specific constants
+RHO_AGI = 5670.0         # Density of silver iodide [kg/m^3]
+R_AGI = 1.0e-6           # Typical radius of AgI particle [m] (Adjusted)
 
 # Grid Parameters (Section 1.2)
 DEFAULT_NX = 101
@@ -39,6 +44,9 @@ class PhysicsConfig:
     g: float = G
     cp: float = CP
     rd: float = RD
+    eta_air: float = ETA_AIR
+    rho_agi: float = RHO_AGI
+    r_agi: float = R_AGI
 
 @dataclass
 class GridConfig:
