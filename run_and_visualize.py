@@ -23,17 +23,18 @@ from cms.config import GridConfig, PhysicsConfig
 print("Шаг 1: Настройка параметров...")
 
 # Параметры сетки (уменьшенная для скорости демонстрации)
-g_config = GridConfig(nx=30, ny=30, nz=30, dx=100, dy=100, dz=100)
+# g_config = GridConfig(nx=30, ny=30, nz=30, dx=100, dy=100, dz=100)
+g_config = GridConfig(nx=101, ny=101, nz=101, dx=500, dy=500, dz=100)
 p_config = PhysicsConfig()
 
 # Параметры симуляции
-sim_duration_minutes = 10 # Увеличено время моделирования
+sim_duration_minutes = 20 # Увеличено время моделирования
 dt_s = 2.0                # Используем большой шаг благодаря IMEX
 num_steps = int(sim_duration_minutes * 60 / dt_s)
 save_interval = 5         # Сохранять каждый 5-й кадр
 
 # Параметры визуализации
-N_PARTICLES = 50          # Количество трассируемых частиц
+N_PARTICLES = 100          # Количество трассируемых частиц
 OUTPUT_FILENAME = "seeding_animation.mp4"
 
 # --- 2. Проведение моделирования ---
