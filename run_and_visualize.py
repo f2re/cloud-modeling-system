@@ -75,7 +75,7 @@ print("Шаг 3: Расчет траекторий частиц...")
 
 # Начальные позиции частиц вблизи точки засева
 np.random.seed(42)
-particles = np.random.rand(N_PARTICLES, 3) * 2 * g_config.dx +
+particles = np.random.rand(N_PARTICLES, 3) * 2 * g_config.dx + \
             np.array([mid_x*g_config.dx, mid_y*g_config.dy, mid_z*g_config.dz]) - g_config.dx
 
 particle_trajectories = np.zeros((num_frames, N_PARTICLES, 3))
