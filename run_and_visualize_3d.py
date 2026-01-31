@@ -36,9 +36,9 @@ def main():
 
     # Get grid dimensions for consistent axis limits
     ds_grid = viz.load_data(0)
-    x_max = ds_grid.nx * ds_grid.dx
-    y_max = ds_grid.ny * ds_grid.dy
-    z_max = ds_grid.nz * ds_grid.dz
+    x_max = ds_grid.dimensions['x'].size * ds_grid.getncattr('dx')
+    y_max = ds_grid.dimensions['y'].size * ds_grid.getncattr('dy')
+    z_max = ds_grid.dimensions['z'].size * ds_grid.getncattr('dz')
     ds_grid.close()
 
     def update(frame_idx):
