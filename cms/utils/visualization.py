@@ -4,6 +4,7 @@ import numpy as np
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from mpl_toolkits.mplot3d import Axes3D
 from typing import List, Optional
 
 class Visualizer:
@@ -58,6 +59,50 @@ class Visualizer:
         
         ds.close()
         return mesh
+
+    def plot_3d_field(self, field_name: str, file_index: int, threshold: float = 1e-6, 
+                      ax: Optional[Axes3D] = None, vmin=None, vmax=None, cmap='viridis', 
+                      alpha: float = 0.5, s: float = 1.0):
+        """
+        Plots a 3D scatter plot of the given field where values exceed a threshold.
+        Визуализирует 3D-скаттер-график заданного поля, где значения превышают порог.
+        """
+        ds = self.load_data(file_index)
+        
+        x = ds.variables['x'][:]
+        y = ds.variables['y'][:]
+        z = ds.variables['z'][:]
+        field = ds.variables[field_name][:] # (nx, ny, nz)
+        
+        # Find indices where field values exceed the threshold
+        # Находим индексы, где значения поля превышают порог
+        # Indices are (x_idx, y_idx, z_idx)
+        x_indices, y_indices, z_indices = np.where(field > threshold)
+        
+        # Map indices back to actual coordinates
+        # Сопоставляем индексы с фактическими координатами
+        x_coords = x[x_indices]
+        y_coords = y[y_indices]
+        z_coords = z[z_indices]
+        
+        # Get corresponding field values for coloring
+        # Получаем соответствующие значения поля для раскраски
+        field_values = field[x_indices, y_indices, z_indices]
+
+        if ax is None:
+            raise ValueError("An Axes3D object must be provided to plot_3d_field for animation compatibility.")
+
+        scatter = ax.scatter(x_coords, y_coords, z_coords, 
+                             c=field_values, cmap=cmap, vmin=vmin, vmax=vmax, 
+                             alpha=alpha, s=s, marker='o') # 's' is size of markers
+        
+        ax.set_xlabel('X (m)')
+        ax.set_ylabel('Y (m)')
+        ax.set_zlabel('Z (m)')
+        ax.set_title(f"3D {field_name} (threshold > {threshold:.1e}) at t={ds.time:.1f}s")
+        
+        ds.close()
+        return scatter
 
     def create_animation(self, field_name: str, y_index: int, output_filename: str = "animation.gif", fps: int = 10):
         """
