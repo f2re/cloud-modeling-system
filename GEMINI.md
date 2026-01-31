@@ -85,6 +85,8 @@ flake8 cms/ tests/
 # Check static types
 mypy cms/
 ```
+## Comments
+*   **All comments must be on Russian** and describe variables and functions logics
 
 ## Key Documentation Map
 *   `IMPLEMENTATION_GUIDE.md`: **The Source of Truth** for physics equations and constants.

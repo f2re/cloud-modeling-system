@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Tuple
 from cms.config import PhysicsConfig
+from cms.microphysics.terminal_velocity import compute_terminal_velocity_double_moment
 
 class WarmMicrophysics:
     """
@@ -9,6 +10,9 @@ class WarmMicrophysics:
     """
     def __init__(self, config: PhysicsConfig):
         self.config = config
+        # Parameters for rain terminal velocity v(D) = a * D^b
+        self.a_v_rain = 846.0
+        self.b_v_rain = 0.8
 
     def compute_rates(self, 
                       qc: np.ndarray, qr: np.ndarray, 
@@ -34,33 +38,56 @@ class WarmMicrophysics:
         
         # 2. Accretion (cloud by rain)
         # Eq 3.5.1: (dqr/dt)_accr = (pi/4) * E_cr * nr * qc * Dr^2 * vr
-        # Using a simplified version or full power law
         e_cr = 1.0
         
-        # Safety: Clamp inputs to avoid negative roots
+        # Safety: Clamp inputs
         qr_safe = np.maximum(qr, 0.0)
-        nr_safe = np.maximum(nr, 1e-12) # Avoid division by zero
+        nr_safe = np.maximum(nr, 1e-12)
         
-        # Placeholder for Dr (mean diameter) and vr (terminal velocity)
-        # In a real double-moment scheme, these depend on (qr, nr)
-        # Ref Section 3.4 for full parameterization
-        base = (6.0 * rho * qr_safe / (np.pi * self.config.rho_w * nr_safe))
-        dr = np.power(np.maximum(0.0, base), 1.0/3.0)
-        vr = 36.34 * dr**0.5  # Simplified power law
+        # Mean diameter of rain drops
+        mass_conc_r = qr_safe * rho
+        m_r = mass_conc_r / nr_safe
+        dr = np.power(6.0 * m_r / (np.pi * self.config.rho_w), 1.0/3.0)
+        dr[m_r < 1e-18] = 0.0
+
+        # Terminal velocity of rain drops
+        vr = compute_terminal_velocity_double_moment(
+            qr, nr, rho, self.config.rho_w,
+            self.a_v_rain, self.b_v_rain
+        )
         
         accr_rate = (np.pi / 4.0) * e_cr * nr * qc * dr**2 * vr
         
         dqr_accr = accr_rate
         dqc_accr = -accr_rate
 
-        # 3. Self-collection (rain number reduction)
-        # Eq 3.5.1: (dnr/dt)_self = -5.78 * nr^2 * dr^3
-        dnr_self = -5.78 * nr**2 * dr**3
+        # 3. Рассчитать тенденции для числовой концентрации
+        
+        # Масса одной новой дождевой капли (из минимального радиуса)
+        m_rain_new = (4.0/3.0) * np.pi * self.config.r_rain_min**3 * self.config.rho_w
+        
+        # Средняя масса облачной капли
+        qc_safe = np.maximum(qc, 1e-12)
+        nc_safe_tend = np.maximum(nc, 1e-3)
+        m_c = (qc_safe * rho) / nc_safe_tend
+        m_c_inv = 1.0 / np.maximum(m_c, 1e-15) # Обратная масса для избежания деления
 
-        # Combine tendencies
+        # Прирост числа дождевых капель от автоконверсии
+        # dN/dt = (dq/dt * rho) / m_particle
+        dnr_auto = (dqr_auto * rho) / m_rain_new
+        
+        # Убыль числа облачных капель от автоконверсии и аккреции
+        dnc_auto = (dqc_auto * rho) * m_c_inv
+        dnc_accr = (dqc_accr * rho) * m_c_inv
+        
+        # 4. Self-collection (уменьшение числа дождевых капель)
+        # Eq 3.5.1: (dnr/dt)_self = -5.78 * nr^2 * dr^3
+        dnr_self = -5.78 * nr_safe**2 * dr**3
+        
+        # 5. Объединить тенденции
         dqc = dqc_auto + dqc_accr
         dqr = dqr_auto + dqr_accr
-        dnc = np.zeros_like(nc) # Simplified: nc constant for now
-        dnr = (auto_rate / (rho * 1e-10)) + dnr_self # Simplified conversion to number
+        dnc = dnc_auto + dnc_accr
+        dnr = dnr_auto + dnr_self
 
         return dqc, dqr, dnc, dnr

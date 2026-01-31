@@ -1,6 +1,6 @@
 ---
 name: cms-orchestrator
-description: Strategic project lead for CMS. Manages the Phase 1-7 roadmap, delegates implementation of specific physics modules, and enforces the "Plan-Code-Verify" loop.
+description: Strategic project lead for CMS. Manages the roadmap or user tasks, delegates implementation of specific physics modules, and enforces the "Plan-Code-Verify" loop.
 ---
 
 # CMS Orchestrator

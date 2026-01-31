@@ -17,16 +17,18 @@ K_A = 2.4e-2             # Thermal conductivity air [W/m/K]
 G = 9.81                 # Gravity [m/s^2]
 CP = 1004.0              # Specific heat capacity [J/kg/K]
 RD = 287.05              # Gas constant for dry air [J/kg/K]
+P0 = 100000.0            # Reference pressure [Pa]
 ETA_AIR = 1.81e-5        # Dynamic viscosity of air [Pa.s] at 15C
 
 # Seeding-specific constants
 RHO_AGI = 5670.0         # Density of silver iodide [kg/m^3]
 R_AGI = 1.0e-6           # Typical radius of AgI particle [m] (Adjusted)
+R_RAIN_MIN = 40.0e-6     # Minimum radius for a raindrop [m]
 
 # Grid Parameters (Section 1.2)
 DEFAULT_NX = 101
 DEFAULT_NY = 101
-DEFAULT_NZ = 101
+DEFAULT_NZ = 100
 DEFAULT_DX = 1000.0      # [m]
 DEFAULT_DY = 1000.0      # [m]
 DEFAULT_DZ = 100.0       # [m]
@@ -44,9 +46,11 @@ class PhysicsConfig:
     g: float = G
     cp: float = CP
     rd: float = RD
+    p0: float = P0
     eta_air: float = ETA_AIR
     rho_agi: float = RHO_AGI
     r_agi: float = R_AGI
+    r_rain_min: float = R_RAIN_MIN
 
 @dataclass
 class GridConfig:
