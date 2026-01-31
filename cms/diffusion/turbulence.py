@@ -14,23 +14,26 @@ class Turbulence:
 
     def compute_eddy_viscosity(self, u: np.ndarray, v: np.ndarray, w: np.ndarray) -> np.ndarray:
         """
-        Computes subgrid eddy viscosity (nu_t) using Smagorinsky model.
+        Computes subgrid eddy viscosity (nu_t) with stability clips.
         Eq 4.2: nu_t = (Cs * Delta)^2 * |S|
         """
         # Grid spacing filter width
         delta = (self.grid.dx * self.grid.dy * self.grid.dz)**(1/3)
         
-        # Strain rate tensor norm (simplified S_ij S_ij approx)
-        # Using simple gradients
-        du_dx = np.gradient(u, self.grid.dx, axis=0)
-        dv_dy = np.gradient(v, self.grid.dy, axis=1)
-        dw_dz = np.gradient(w, self.grid.dz, axis=2)
+        # Strain rate tensor norm with clipping
+        max_grad = 1.0  # Max gradient [1/s]
+        du_dx = np.clip(np.gradient(u, self.grid.dx, axis=0), -max_grad, max_grad)
+        dv_dy = np.clip(np.gradient(v, self.grid.dy, axis=1), -max_grad, max_grad)
+        dw_dz = np.clip(np.gradient(w, self.grid.dz, axis=2), -max_grad, max_grad)
         
-        # Simplified S_squared = 2 * (du_dx^2 + dv_dy^2 + dw_dz^2) + shear terms...
-        # For efficiency in this prototype, just using diagonal terms
         s_sq = 2 * (du_dx**2 + dv_dy**2 + dw_dz**2)
         
         nu_t = (self.cs_sq * delta**2) * np.sqrt(s_sq)
+        
+        # Clip final viscosity to a realistic maximum
+        nu_t_max = 1000.0  # [m^2/s]
+        nu_t = np.clip(nu_t, 0.0, nu_t_max)
+        
         return nu_t
 
     def compute_diffusion(self, field: np.ndarray, nu_t: np.ndarray) -> np.ndarray:

@@ -22,16 +22,24 @@ class WarmMicrophysics:
         Computes transformation rates for warm microphysics.
         Returns (dqc, dqr, dnc, dnr) tendencies.
         """
-        # 1. Autoconversion (cloud -> rain)
+        # 1. Autoconversion (cloud -> rain) using stable logarithmic formulation
         # Eq 3.5.1: (dqr/dt)_auto = 1350 * qc^2.47 * nc^-1.79 / rho^1.47
-        # Note: nc is number concentration (m^-3)
         auto_rate = np.zeros_like(qc)
-        mask = qc > 1e-6
+        mask = qc > 1e-9
+
+        # Используем логарифмическое представление для стабильности
+        log_qc = np.log(np.maximum(qc[mask], 1e-15))
+        log_nc = np.log(np.maximum(nc[mask], 1e-3))
+        log_rho = np.log(np.maximum(rho[mask], 0.1))
+
+        log_auto = (np.log(1350.0) +
+                    2.47 * log_qc -
+                    1.79 * log_nc -
+                    1.47 * log_rho)
         
-        # Safety: Clamp nc to avoid division by zero
-        nc_safe = np.maximum(nc[mask], 1e-3)
-        
-        auto_rate[mask] = 1350.0 * qc[mask]**2.47 * nc_safe**-1.79 / rho[mask]**1.47
+        # Ограничиваем результат для предотвращения экстремальных значений
+        log_auto_safe = np.clip(log_auto, -50, 10)
+        auto_rate[mask] = np.exp(log_auto_safe)
         
         dqr_auto = auto_rate
         dqc_auto = -auto_rate

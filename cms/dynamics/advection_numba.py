@@ -1,13 +1,12 @@
 import numpy as np
 from numba import jit
 
-@jit(nopython=True, parallel=False, fastmath=True)
+@jit(nopython=True, parallel=False, fastmath=False)
 def weno5_reconstruct_x(q, out, nx, ny, nz):
     """
-    WENO5 reconstruction along X-axis using explicit loops.
+    WENO5 reconstruction along X-axis with adaptive epsilon.
+    Ref: Borges et al. (2008), Henrick et al. (2005)
     """
-    eps = 1e-6
-    
     # 13/12 and 1/4 constants
     c1 = 13.0/12.0
     c2 = 0.25
@@ -29,46 +28,49 @@ def weno5_reconstruct_x(q, out, nx, ny, nz):
                 v_p2 = q[ip2, j, k]
                 
                 # Smoothness indicators
-                # b0 = (13/12)*(v_m2 - 2*v_m1 + v_0)**2 + (1/4)*(v_m2 - 4*v_m1 + 3*v_0)**2
                 term1 = v_m2 - 2*v_m1 + v_0
                 term2 = v_m2 - 4*v_m1 + 3*v_0
                 b0 = c1 * term1*term1 + c2 * term2*term2
                 
-                # b1 = (13/12)*(v_m1 - 2*v_0 + v_p1)**2 + (1/4)*(v_m1 - v_p1)**2
                 term1 = v_m1 - 2*v_0 + v_p1
                 term2 = v_m1 - v_p1
                 b1 = c1 * term1*term1 + c2 * term2*term2
                 
-                # b2 = (13/12)*(v_0 - 2*v_p1 + v_p2)**2 + (1/4)*(3*v_0 - 4*v_p1 + v_p2)**2
                 term1 = v_0 - 2*v_p1 + v_p2
                 term2 = 3*v_0 - 4*v_p1 + v_p2
                 b2 = c1 * term1*term1 + c2 * term2*term2
-                
-                # Weights
-                # d0, d1, d2 = 0.1, 0.6, 0.3
-                a0 = 0.1 / ((eps + b0)*(eps + b0))
-                a1 = 0.6 / ((eps + b1)*(eps + b1))
-                a2 = 0.3 / ((eps + b2)*(eps + b2))
-                
-                w_sum = a0 + a1 + a2 + eps
+
+                # Adaptive epsilon (Henrick et al., 2005)
+                local_h = max(abs(v_m2), abs(v_m1), abs(v_0), abs(v_p1), abs(v_p2))
+                eps_local = 1e-6 * (local_h**2 + 1e-40)
+
+                # Weights with stability constraints (Borges et al., 2008)
+                a0 = 0.1 / max((eps_local + b0)**2, 1e-40)
+                a1 = 0.6 / max((eps_local + b1)**2, 1e-40)
+                a2 = 0.3 / max((eps_local + b2)**2, 1e-40)
+
+                # Normalize weights to prevent overflow
+                a_max = max(a0, a1, a2)
+                if a_max > 1e10:
+                    a0 /= a_max
+                    a1 /= a_max
+                    a2 /= a_max
+
+                w_sum = a0 + a1 + a2 + 1e-40
                 w0 = a0 / w_sum
                 w1 = a1 / w_sum
                 w2 = a2 / w_sum
-                # q0 = (1/3)*v_m2 - (7/6)*v_m1 + (11/6)*v_0
+                
+                # Candidate polynomials
                 q0 = 0.3333333333333333*v_m2 - 1.1666666666666667*v_m1 + 1.8333333333333333*v_0
-                
-                # q1 = -(1/6)*v_m1 + (5/6)*v_0 + (1/3)*v_p1
                 q1 = -0.16666666666666666*v_m1 + 0.8333333333333334*v_0 + 0.3333333333333333*v_p1
-                
-                # q2 = (1/3)*v_0 + (5/6)*v_p1 - (1/6)*v_p2
                 q2 = 0.3333333333333333*v_0 + 0.8333333333333334*v_p1 - 0.16666666666666666*v_p2
                 
                 out[i, j, k] = w0*q0 + w1*q1 + w2*q2
 
-@jit(nopython=True, parallel=False, fastmath=True)
+@jit(nopython=True, parallel=False, fastmath=False)
 def weno5_reconstruct_y(q, out, nx, ny, nz):
-    """WENO5 reconstruction along Y-axis."""
-    eps = 1e-6
+    """WENO5 reconstruction along Y-axis with adaptive epsilon."""
     c1 = 13.0/12.0
     c2 = 0.25
     
@@ -98,12 +100,21 @@ def weno5_reconstruct_y(q, out, nx, ny, nz):
                 term1 = v_0 - 2*v_p1 + v_p2
                 term2 = 3*v_0 - 4*v_p1 + v_p2
                 b2 = c1 * term1*term1 + c2 * term2*term2
+
+                local_h = max(abs(v_m2), abs(v_m1), abs(v_0), abs(v_p1), abs(v_p2))
+                eps_local = 1e-6 * (local_h**2 + 1e-40)
+
+                a0 = 0.1 / max((eps_local + b0)**2, 1e-40)
+                a1 = 0.6 / max((eps_local + b1)**2, 1e-40)
+                a2 = 0.3 / max((eps_local + b2)**2, 1e-40)
+
+                a_max = max(a0, a1, a2)
+                if a_max > 1e10:
+                    a0 /= a_max
+                    a1 /= a_max
+                    a2 /= a_max
                 
-                a0 = 0.1 / ((eps + b0)**2)
-                a1 = 0.6 / ((eps + b1)**2)
-                a2 = 0.3 / ((eps + b2)**2)
-                
-                w_sum = a0 + a1 + a2 + eps
+                w_sum = a0 + a1 + a2 + 1e-40
                 w0 = a0 / w_sum
                 w1 = a1 / w_sum
                 w2 = a2 / w_sum
@@ -114,10 +125,9 @@ def weno5_reconstruct_y(q, out, nx, ny, nz):
                 
                 out[i, j, k] = w0*q0 + w1*q1 + w2*q2
 
-@jit(nopython=True, parallel=False, fastmath=True)
+@jit(nopython=True, parallel=False, fastmath=False)
 def weno5_reconstruct_z(q, out, nx, ny, nz):
-    """WENO5 reconstruction along Z-axis."""
-    eps = 1e-6
+    """WENO5 reconstruction along Z-axis with adaptive epsilon."""
     c1 = 13.0/12.0
     c2 = 0.25
     
@@ -147,12 +157,21 @@ def weno5_reconstruct_z(q, out, nx, ny, nz):
                 term1 = v_0 - 2*v_p1 + v_p2
                 term2 = 3*v_0 - 4*v_p1 + v_p2
                 b2 = c1 * term1*term1 + c2 * term2*term2
+
+                local_h = max(abs(v_m2), abs(v_m1), abs(v_0), abs(v_p1), abs(v_p2))
+                eps_local = 1e-6 * (local_h**2 + 1e-40)
+
+                a0 = 0.1 / max((eps_local + b0)**2, 1e-40)
+                a1 = 0.6 / max((eps_local + b1)**2, 1e-40)
+                a2 = 0.3 / max((eps_local + b2)**2, 1e-40)
+
+                a_max = max(a0, a1, a2)
+                if a_max > 1e10:
+                    a0 /= a_max
+                    a1 /= a_max
+                    a2 /= a_max
                 
-                a0 = 0.1 / ((eps + b0)**2)
-                a1 = 0.6 / ((eps + b1)**2)
-                a2 = 0.3 / ((eps + b2)**2)
-                
-                w_sum = a0 + a1 + a2 + eps
+                w_sum = a0 + a1 + a2 + 1e-40
                 w0 = a0 / w_sum
                 w1 = a1 / w_sum
                 w2 = a2 / w_sum

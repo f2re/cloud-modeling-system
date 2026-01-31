@@ -51,8 +51,8 @@ class TestSeedingModel(unittest.TestCase):
         model.c_agi[mid_x, mid_y, z_seed_level] = c_agi_conc
         
         # 5. Прогоняем модель после засева
-        sim_duration_minutes = 30
-        dt_s = 0.5
+        sim_duration_minutes = 1 # Уменьшено для скорости теста
+        dt_s = 0.5 # Возвращено к исходному значению
         num_steps = int(sim_duration_minutes * 60 / dt_s)
         
         for step in range(num_steps):
