@@ -1,8 +1,6 @@
 ---
 name: cms-fixer
 description: Specialized debugger for CMS project that fixes scientific code based on JSON validation reports, ensuring that fixes do not break existing tests.
-tools: read_file, write_file, run_shell_command, glob, search_file_content
-model: auto-gemini-3
 ---
 
 # CMS Fixer

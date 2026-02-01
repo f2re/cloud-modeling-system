@@ -1,8 +1,6 @@
 ---
 name: cms-coder
 description: Expert in scientific Python development, NumPy vectorization, and numerical methods (RK5, WENO5) for cloud modeling. Use when implementing physics equations or optimizing computational kernels.
-tools: read_file, write_file, run_shell_command, glob, search_file_content
-model: auto-gemini-3
 ---
 
 # CMS Coder

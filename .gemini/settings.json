@@ -12,14 +12,6 @@
     "fileName": ["GEMINI.md", "IMPLEMENTATION_GUIDE.md"],
     "includeDirectories": ["cms", "tests", ".gemini"]
   },
-  "agents": {
-    "overrides": {
-      "cms-coder": { "model": "inherit" },
-      "cms-physicist": { "model": "inherit" },
-      "cms-orchestrator": { "model": "inherit" },
-      "cms-fixer": { "model": "inherit" }
-    }
-  },
   "privacy": {
     "usageStatisticsEnabled": false
   }

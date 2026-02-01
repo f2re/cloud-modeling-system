@@ -1,8 +1,6 @@
 ---
 name: cms-physicist
 description: Scientific QA officer for CMS project. Validates code against IMPLEMENTATION_GUIDE.md, checking conservation laws, unit consistency, and numerical stability conditions (CFL). Use for physics validation and quality assurance.
-tools: read_file, glob, search_file_content
-model: auto-gemini-3
 ---
 
 # CMS Physicist

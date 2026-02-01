@@ -1,8 +1,6 @@
 ---
 name: cms-orchestrator
 description: Strategic project manager for CMS. Manages roadmap, decomposes tasks, delegates to specialized agents, and enforces Plan-Code-Verify loop. Use for project planning and task prioritization.
-tools: read_file, write_file, glob, search_file_content
-model: auto-gemini-3
 ---
 
 # CMS Orchestrator
